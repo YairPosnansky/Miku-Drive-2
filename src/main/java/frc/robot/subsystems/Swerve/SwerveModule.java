@@ -162,31 +162,9 @@ public class SwerveModule extends SubsystemBase {
      */
     public void setModuleState(SwerveModuleState state){
         m_targetState = state;
-
-        double targetAngle = state.angle.getDegrees();
-
-        boolean fixdir = false;
-        boolean optimize = false;
-        if(fixdir){
-            double currentAngle = this.getModuleState().angle.getDegrees();    
-
-            double direct_delta = Math.abs(currentAngle - targetAngle);
-            double reversed_delta = Math.abs(currentAngle + targetAngle);
-
-            if(reversed_delta < direct_delta){
-                targetAngle += reversed_delta;
-            }
-        }
-        if(optimize){
-            targetAngle += this.m_moduleOffset;
-            if(targetAngle < 0){
-                targetAngle += 180;
-                state.speedMetersPerSecond *= -1;
-            }
-        }
-
+        
         setModuleVelocity(state.speedMetersPerSecond);
-        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((m_moduleOffset + targetAngle)/360));
+        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((m_moduleOffset + state.angle.getDegrees())/360));
     }
 
     /**

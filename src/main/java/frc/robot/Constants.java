@@ -143,7 +143,7 @@ public final class Constants {
          */
         public static final double kBackRightModuleOffsetInDegrees = 166;
 
-        public static final double kMaxVelocityMetersPerSecond = 2.39268;
+        public static final double kMaxVelocityMetersPerSecond = 2*2.39268;
         public static final double kMaxAngularVelocityRadiansPerSecond = kMaxVelocityMetersPerSecond /
         Math.hypot(kTrackWidthMeters / 2.0, kWheelbaseMeters / 2.0);
 
