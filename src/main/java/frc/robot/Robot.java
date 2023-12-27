@@ -48,19 +48,10 @@ public class Robot extends TimedRobot {
     addPIDConstantsToShuffleboardSteer(steerPIDTab, "Steer");
   }
 
-  private void addCurrentAngle(String name, ShuffleboardTab tab) {
-    tab.add(name + " bl", m_robotContainer.getDriveSubsystem().get_bl().getModuleState().angle.getDegrees());
-    tab.add(name + " br", m_robotContainer.getDriveSubsystem().get_br().getModuleState().angle.getDegrees());
-    tab.add(name + " fl", m_robotContainer.getDriveSubsystem().get_fl().getModuleState().angle.getDegrees());
-    tab.add(name + " fr", m_robotContainer.getDriveSubsystem().get_fr().getModuleState().angle.getDegrees());
+  private void updateCurrentGyroAngle() {
+    SmartDashboard.putNumber("Swerve c Gyro Angle", m_robotContainer.getDriveSubsystem().getGyroAngleInRotation2d().getDegrees());
   }
 
-  private void addTargetAngle(String name, ShuffleboardTab tab) {
-    tab.add(name + " bl", m_robotContainer.getDriveSubsystem().get_bl().getTargetState().angle.getDegrees());
-    tab.add(name + " br", m_robotContainer.getDriveSubsystem().get_br().getTargetState().angle.getDegrees());
-    tab.add(name + " fl", m_robotContainer.getDriveSubsystem().get_fl().getTargetState().angle.getDegrees());
-    tab.add(name + " fr", m_robotContainer.getDriveSubsystem().get_fr().getTargetState().angle.getDegrees());
-  }
 
   private void updateCurrentAngle() {
     SmartDashboard.putNumber("Swerve c bl", m_robotContainer.getDriveSubsystem().get_bl().getModuleState().angle.getDegrees());
@@ -111,6 +102,7 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     updateCurrentAngle();
     updateTargetAngle();
+    updateCurrentGyroAngle();
     
 
     // Update Shuffleboard data here if needed

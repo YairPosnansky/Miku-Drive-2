@@ -104,6 +104,32 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
+   * Returns the field oriented corrected velocity for a target velocity
+   * @param targetVelocityX
+   * The target X velocity (Meters Per Second)
+   * @param targetVelocityY
+   * The target Y velocity (Meters Per Second)
+   */
+  public double getVelocityFieldOriented_X(double targetVelocityX, double targetVelocityY){
+    double offsetAngle = getGyroAngleInRotation2d().getDegrees() - Drive.Stats.fieldHeadingOffset;
+    double corrected_velocity = targetVelocityX * Math.cos(Math.toRadians(offsetAngle)) - targetVelocityY*Math.sin(Math.toRadians(offsetAngle));
+    return corrected_velocity;
+  }
+
+  /**
+   * Returns the field oriented corrected velocity for a target velocity
+   * @param targetVelocityX
+   * The target X velocity (Meters Per Second)
+   * @param targetVelocityY
+   * The target Y velocity (Meters Per Second)
+   */
+  public double getVelocityFieldOriented_Y(double targetVelocityX, double targetVelocityY){
+    double offsetAngle = getGyroAngleInRotation2d().getDegrees() - Drive.Stats.fieldHeadingOffset;
+    double corrected_velocity = targetVelocityX * Math.sin(Math.toRadians(offsetAngle)) + targetVelocityY*Math.cos(Math.toRadians(offsetAngle));
+    return corrected_velocity;
+  }
+
+  /**
    * Sets the Speed / Angle / Stats of all of the modules
    * @param xVelocityMps
    * The X velocity (Meters Per Second)
@@ -113,10 +139,11 @@ public class DriveSubsystem extends SubsystemBase {
    * Rotation velocity (Radians Per Second)
    */
   public void setModules(double xVelocityMps, double yVelocityMps, double rotationVelocityRps) {
-    // xVelocityMps=0;
-    // yVelocityMps*=-1.0;
-    // rotationVelocityRps = 0;
-    this.m_swerveSpeeds = new ChassisSpeeds(-xVelocityMps, -yVelocityMps, -rotationVelocityRps);
+    // convert to field oriented
+    double xVelocityMpsFieldOriented = getVelocityFieldOriented_X(xVelocityMps,yVelocityMps);
+    double yVelocityMpsFieldOriented = getVelocityFieldOriented_Y(xVelocityMps,yVelocityMps);
+
+    this.m_swerveSpeeds = new ChassisSpeeds(-xVelocityMpsFieldOriented, -yVelocityMpsFieldOriented, -rotationVelocityRps);
     SwerveModuleState[] target_states = Drive.Stats.kinematics.toSwerveModuleStates(this.m_swerveSpeeds);
     setModulesStates(target_states);
   }
