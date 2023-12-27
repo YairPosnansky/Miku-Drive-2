@@ -29,6 +29,18 @@ public class DriveSubsystem extends SubsystemBase {
   private ChassisSpeeds m_swerveSpeeds;
   private Pose2d m_currentPose;
 
+  public SwerveModule get_fl(){
+    return m_frontLeftModule;
+  }
+  public SwerveModule get_fr(){
+    return m_frontRightModule;
+  }
+  public SwerveModule get_bl(){
+    return m_backLeftModule;
+  }
+  public SwerveModule get_br(){
+    return m_backRightModule;
+  }
 
 
 

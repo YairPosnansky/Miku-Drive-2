@@ -10,7 +10,9 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.Swerve.PID;
-
+import frc.robot.subsystems.Drive.DriveSubsystem;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -22,7 +24,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
-  private ShuffleboardTab mainTab;
+  private ShuffleboardTab SwerveDataTab;
   private ShuffleboardTab drivePIDTab;
   private ShuffleboardTab steerPIDTab;
 
@@ -37,13 +39,41 @@ public class Robot extends TimedRobot {
     m_robotContainer = new RobotContainer();
 
     // Shuffleboard setup
-    mainTab = Shuffleboard.getTab("PID tab");
+    SwerveDataTab = Shuffleboard.getTab("Swerve Data");
     drivePIDTab = Shuffleboard.getTab("Drive PID");
     steerPIDTab = Shuffleboard.getTab("Steer PID");
 
     // Add PID constants to Shuffleboard
     addPIDConstantsToShuffleboardDrive(drivePIDTab, "Drive");
     addPIDConstantsToShuffleboardSteer(steerPIDTab, "Steer");
+  }
+
+  private void addCurrentAngle(String name, ShuffleboardTab tab) {
+    tab.add(name + " bl", m_robotContainer.getDriveSubsystem().get_bl().getModuleState().angle.getDegrees());
+    tab.add(name + " br", m_robotContainer.getDriveSubsystem().get_br().getModuleState().angle.getDegrees());
+    tab.add(name + " fl", m_robotContainer.getDriveSubsystem().get_fl().getModuleState().angle.getDegrees());
+    tab.add(name + " fr", m_robotContainer.getDriveSubsystem().get_fr().getModuleState().angle.getDegrees());
+  }
+
+  private void addTargetAngle(String name, ShuffleboardTab tab) {
+    tab.add(name + " bl", m_robotContainer.getDriveSubsystem().get_bl().getTargetState().angle.getDegrees());
+    tab.add(name + " br", m_robotContainer.getDriveSubsystem().get_br().getTargetState().angle.getDegrees());
+    tab.add(name + " fl", m_robotContainer.getDriveSubsystem().get_fl().getTargetState().angle.getDegrees());
+    tab.add(name + " fr", m_robotContainer.getDriveSubsystem().get_fr().getTargetState().angle.getDegrees());
+  }
+
+  private void updateCurrentAngle() {
+    SmartDashboard.putNumber("Swerve c bl", m_robotContainer.getDriveSubsystem().get_bl().getModuleState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve c br", m_robotContainer.getDriveSubsystem().get_br().getModuleState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve c fl", m_robotContainer.getDriveSubsystem().get_fl().getModuleState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve c fr", m_robotContainer.getDriveSubsystem().get_fr().getModuleState().angle.getDegrees());
+  }
+
+  private void updateTargetAngle() {
+    SmartDashboard.putNumber("Swerve t bl", m_robotContainer.getDriveSubsystem().get_bl().getTargetState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve t br", m_robotContainer.getDriveSubsystem().get_br().getTargetState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve t fl", m_robotContainer.getDriveSubsystem().get_fl().getTargetState().angle.getDegrees());
+    SmartDashboard.putNumber("Swerve t fr", m_robotContainer.getDriveSubsystem().get_fr().getTargetState().angle.getDegrees());
   }
 
   private void addPIDConstantsToShuffleboardDrive(ShuffleboardTab tab, String name) {
@@ -79,6 +109,9 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods. This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+    updateCurrentAngle();
+    updateTargetAngle();
+    
 
     // Update Shuffleboard data here if needed
   }

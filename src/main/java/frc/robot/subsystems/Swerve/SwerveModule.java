@@ -1,15 +1,19 @@
 package frc.robot.subsystems.Swerve;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -18,6 +22,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Swerve;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.shuffleboard.*;
 
 
@@ -36,6 +41,7 @@ public class SwerveModule extends SubsystemBase {
     private final MotionMagicDutyCycle m_motionMagicDutyCycle;
 
     private SwerveModuleState m_moduleState; // current state of the module without steer offset
+    private SwerveModuleState m_targetState;
     private double m_moduleOffset;
 
 
@@ -108,7 +114,12 @@ public class SwerveModule extends SubsystemBase {
             .withKI(Swerve.PID.Steer.kI) // Integral tuning - learning
             .withKD(Swerve.PID.Steer.kD); // Derivative tuning - overshoot
         
+            
+        MagnetSensorConfigs sensorConfigs = new MagnetSensorConfigs()
+        .withAbsoluteSensorRange(AbsoluteSensorRangeValue.Unsigned_0To1);
 
+        ClosedLoopGeneralConfigs talonConfigs = new ClosedLoopGeneralConfigs();
+        talonConfigs.ContinuousWrap = true;
 
         this.m_driveMotor.getConfigurator().apply(voltageConfigs);
         this.m_driveMotor.getConfigurator().apply(statorConfigs);
@@ -119,18 +130,30 @@ public class SwerveModule extends SubsystemBase {
         this.m_steerMotor.getConfigurator().apply(statorConfigs);
         this.m_steerMotor.getConfigurator().apply(feedbackConfigs);
         this.m_steerMotor.getConfigurator().apply(slot0SteerConfigs);
+        this.m_steerMotor.getConfigurator().apply(talonConfigs);
         
 
-        
+        this.m_steerEncoder.getConfigurator().apply(sensorConfigs);
     }
 
+    /**
+     * @param target_velocity
+     * The target velocity in meters per second
+     */
+    public void setModuleVelocity(double target_velocity){
+        this.m_driveMotor.setControl(m_voltageVelocity.withVelocity(mpsToRps(target_velocity)));
+    }
 
     /**
-     * @param degrees 
+     * @param target_degrees 
      * The target angle in degrees of the module
      */
-    public void setModuleAngle(double degrees){
-        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((this.m_moduleOffset - Math.min(180,Math.max(degrees,-180)))/360));
+    public void setModuleAngle(double target_degrees){
+        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((this.m_moduleOffset + target_degrees)/360));
+    }
+
+    public SwerveModuleState getTargetState(){
+        return m_targetState;
     }
 
     /**
@@ -138,9 +161,32 @@ public class SwerveModule extends SubsystemBase {
      * The state of the Module (Affects both the Drive and Steer Motor)
      */
     public void setModuleState(SwerveModuleState state){
-        //state = SwerveModuleState.optimize(state, this.m_moduleState.angle); // CURRENTLY BREAKS THINGS
-        this.m_driveMotor.setControl(m_voltageVelocity.withVelocity(mpsToRps(state.speedMetersPerSecond)));
-        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((this.m_moduleOffset + state.angle.getDegrees())/360));
+        m_targetState = state;
+
+        double targetAngle = state.angle.getDegrees();
+
+        boolean fixdir = false;
+        boolean optimize = false;
+        if(fixdir){
+            double currentAngle = this.getModuleState().angle.getDegrees();    
+
+            double direct_delta = Math.abs(currentAngle - targetAngle);
+            double reversed_delta = Math.abs(currentAngle + targetAngle);
+
+            if(reversed_delta < direct_delta){
+                targetAngle += reversed_delta;
+            }
+        }
+        if(optimize){
+            targetAngle += this.m_moduleOffset;
+            if(targetAngle < 0){
+                targetAngle += 180;
+                state.speedMetersPerSecond *= -1;
+            }
+        }
+
+        setModuleVelocity(state.speedMetersPerSecond);
+        this.m_steerMotor.setControl(this.m_voltagePosition.withPosition((m_moduleOffset + targetAngle)/360));
     }
 
     /**
