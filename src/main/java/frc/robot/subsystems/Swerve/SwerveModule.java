@@ -1,6 +1,5 @@
 package frc.robot.subsystems.Swerve;
 
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -8,9 +7,7 @@ import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.VoltageConfigs;
-import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -22,8 +19,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Swerve;
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
-import edu.wpi.first.wpilibj.shuffleboard.*;
 
 
 
@@ -41,6 +36,7 @@ public class SwerveModule extends SubsystemBase {
     private SwerveModuleState m_targetState;
     private double m_moduleOffset;
 
+    private double m_targetRotorVelocity = 0;
 
     /**
      * @param driveMotorCANID
@@ -84,10 +80,13 @@ public class SwerveModule extends SubsystemBase {
             .withStatorCurrentLimit(35)
             .withSupplyCurrentLimit(35);
 
-        FeedbackConfigs feedbackConfigs = new FeedbackConfigs()
+        FeedbackConfigs steerFeedbackConfigs = new FeedbackConfigs()
             .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder)
             .withFeedbackRemoteSensorID(steerEncoderCANID)
-            .withRotorToSensorRatio(Swerve.Stats.kRotorToSensorRatio);
+            .withRotorToSensorRatio(Swerve.Stats.kRotorToSensorRatioSteer);
+
+        FeedbackConfigs driveFeedbackConfigs = new FeedbackConfigs()
+            .withSensorToMechanismRatio(Swerve.Stats.kRotorToSensorRatioDrive);
 
         Slot0Configs slot0DriveConfigs = new Slot0Configs()
             .withKA(Swerve.PID.Drive.kA) // Acceleration 
@@ -121,11 +120,12 @@ public class SwerveModule extends SubsystemBase {
         this.m_driveMotor.getConfigurator().apply(voltageConfigs);
         this.m_driveMotor.getConfigurator().apply(statorConfigs);
         this.m_driveMotor.getConfigurator().apply(slot0DriveConfigs);
+        this.m_driveMotor.getConfigurator().apply(driveFeedbackConfigs);
         
         
         this.m_steerMotor.getConfigurator().apply(voltageConfigs);
         this.m_steerMotor.getConfigurator().apply(statorConfigs);
-        this.m_steerMotor.getConfigurator().apply(feedbackConfigs);
+        this.m_steerMotor.getConfigurator().apply(steerFeedbackConfigs);
         this.m_steerMotor.getConfigurator().apply(slot0SteerConfigs);
         this.m_steerMotor.getConfigurator().apply(talonConfigs);
         this.m_steerMotor.setInverted(true);
@@ -134,12 +134,17 @@ public class SwerveModule extends SubsystemBase {
     
     }
 
+    public double getTargetRotorVelocityRPM() {
+        return this.m_targetRotorVelocity;
+    }
+
     /**
      * @param target_velocity
      * The target velocity in meters per second
      */
     public void setModuleVelocity(double target_velocity){
-        this.m_driveMotor.setControl(m_voltageVelocity.withVelocity(mpsToRps(target_velocity)));
+        this.m_targetRotorVelocity = mpsToRps(target_velocity) * 60 *Swerve.Stats.kRotorToSensorRatioDrive;
+        this.m_driveMotor.setControl(m_voltageVelocity.withVelocity(mpsToRps(target_velocity)*Swerve.Stats.kRotorToSensorRatioDrive));
     }
 
     /**

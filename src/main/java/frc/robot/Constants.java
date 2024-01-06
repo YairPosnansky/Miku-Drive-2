@@ -102,7 +102,8 @@ public final class Constants {
       /**
        * The ratio between the Motor and the center wheel of the Swerve module (which the CANcoder lies on)
        */
-      public static final double kRotorToSensorRatio = 8.14;
+      public static final double kRotorToSensorRatioDrive = 8.14;
+      public static final double kRotorToSensorRatioSteer = 150/7;
 
       public static final double kDriveWheelRadiusInches = 2;
       public static final double wheelRadiusMeters = Units.inchesToMeters(kDriveWheelRadiusInches);
@@ -143,7 +144,7 @@ public final class Constants {
          */
         public static final double kBackRightModuleOffsetInDegrees = 166;
 
-        public static final double kMaxVelocityMetersPerSecond = 2.39268;
+        public static final double kMaxVelocityMetersPerSecond = 4.176;
         public static final double kMaxAngularVelocityRadiansPerSecond = kMaxVelocityMetersPerSecond /
         Math.hypot(kTrackWidthMeters / 2.0, kWheelbaseMeters / 2.0);
 
