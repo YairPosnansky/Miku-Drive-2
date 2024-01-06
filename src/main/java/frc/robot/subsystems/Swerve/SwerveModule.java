@@ -37,9 +37,6 @@ public class SwerveModule extends SubsystemBase {
     private final VelocityVoltage m_voltageVelocity;
     private final PositionVoltage m_voltagePosition;
 
-    private final VelocityDutyCycle m_velocityDutyCycle;
-    private final MotionMagicDutyCycle m_motionMagicDutyCycle;
-
     private SwerveModuleState m_moduleState; // current state of the module without steer offset
     private SwerveModuleState m_targetState;
     private double m_moduleOffset;
@@ -60,11 +57,9 @@ public class SwerveModule extends SubsystemBase {
         this.m_steerMotor = new TalonFX(steerMotorCANID);
         this.m_steerEncoder = new CANcoder(steerEncoderCANID);
         
-        this.m_velocityDutyCycle = new VelocityDutyCycle(0);
-        this.m_motionMagicDutyCycle = new MotionMagicDutyCycle(0);
         
-        this.m_voltageVelocity = new VelocityVoltage(0,0,false,0,0,false);
-        this.m_voltagePosition = new PositionVoltage(0,0,false,0,0,false);
+        this.m_voltageVelocity = new VelocityVoltage(0,0,false,0,0,false, false, false);
+        this.m_voltagePosition = new PositionVoltage(0,0,false,0,0,false, false, false);
         this.m_moduleState = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
 
         this.m_moduleOffset = moduleOffsetInDegrees;
@@ -121,6 +116,8 @@ public class SwerveModule extends SubsystemBase {
         ClosedLoopGeneralConfigs talonConfigs = new ClosedLoopGeneralConfigs();
         talonConfigs.ContinuousWrap = true;
 
+        this.m_driveMotor.getConfigurator().apply(new TalonFXConfiguration());
+
         this.m_driveMotor.getConfigurator().apply(voltageConfigs);
         this.m_driveMotor.getConfigurator().apply(statorConfigs);
         this.m_driveMotor.getConfigurator().apply(slot0DriveConfigs);
@@ -131,9 +128,10 @@ public class SwerveModule extends SubsystemBase {
         this.m_steerMotor.getConfigurator().apply(feedbackConfigs);
         this.m_steerMotor.getConfigurator().apply(slot0SteerConfigs);
         this.m_steerMotor.getConfigurator().apply(talonConfigs);
-        
+        this.m_steerMotor.setInverted(true);
 
         this.m_steerEncoder.getConfigurator().apply(sensorConfigs);
+    
     }
 
     /**

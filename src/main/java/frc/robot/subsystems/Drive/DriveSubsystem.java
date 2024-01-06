@@ -139,7 +139,7 @@ public class DriveSubsystem extends SubsystemBase {
    * Rotation velocity (Radians Per Second)
    */
   public void setModules(double xVelocityMps, double yVelocityMps, double rotationVelocityRps) {
-    // convert to field oriented
+    // TODO oriented to object on field
     double xVelocityMpsFieldOriented = getVelocityFieldOriented_X(xVelocityMps,yVelocityMps);
     double yVelocityMpsFieldOriented = getVelocityFieldOriented_Y(xVelocityMps,yVelocityMps);
 
