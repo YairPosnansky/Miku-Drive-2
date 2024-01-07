@@ -60,6 +60,20 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Swerve c fr", m_robotContainer.getDriveSubsystem().get_fr().getModuleState().angle.getDegrees());
   }
 
+  private void updateTargetVelocity() {
+    SmartDashboard.putNumber("Swerve target velocity bl", m_robotContainer.getDriveSubsystem().get_bl().getTargetRotorVelocityRPM());
+    SmartDashboard.putNumber("Swerve target velocity br", m_robotContainer.getDriveSubsystem().get_br().getTargetRotorVelocityRPM());
+    SmartDashboard.putNumber("Swerve target velocity fl", m_robotContainer.getDriveSubsystem().get_fl().getTargetRotorVelocityRPM());
+    SmartDashboard.putNumber("Swerve target velocity fr", m_robotContainer.getDriveSubsystem().get_fr().getTargetRotorVelocityRPM());
+  }
+
+  private void updateCurrentVelocity() {
+    SmartDashboard.putNumber("Swerve current velocity bl", m_robotContainer.getDriveSubsystem().get_bl().getDriveMotor().getRotorVelocity().getValueAsDouble() *60);
+    SmartDashboard.putNumber("Swerve current velocity br", m_robotContainer.getDriveSubsystem().get_br().getDriveMotor().getRotorVelocity().getValueAsDouble() *60);
+    SmartDashboard.putNumber("Swerve current velocity fl", m_robotContainer.getDriveSubsystem().get_fl().getDriveMotor().getRotorVelocity().getValueAsDouble() *60);
+    SmartDashboard.putNumber("Swerve current velocity fr", m_robotContainer.getDriveSubsystem().get_fr().getDriveMotor().getRotorVelocity().getValueAsDouble() *60);
+  }
+
   private void updateTargetAngle() {
     SmartDashboard.putNumber("Swerve t bl", m_robotContainer.getDriveSubsystem().get_bl().getTargetState().angle.getDegrees());
     SmartDashboard.putNumber("Swerve t br", m_robotContainer.getDriveSubsystem().get_br().getTargetState().angle.getDegrees());
@@ -103,7 +117,8 @@ public class Robot extends TimedRobot {
     updateCurrentAngle();
     updateTargetAngle();
     updateCurrentGyroAngle();
-    
+    updateCurrentVelocity();
+    updateTargetVelocity();
 
     // Update Shuffleboard data here if needed
   }
